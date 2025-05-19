@@ -1,40 +1,23 @@
-handlers.HandlePlayerReport = function (Args, Context) {
+handlers.ReportPlayer = function(Args, Context) {
     var ModeratorIds = ["MODERATOR_ID"];
-    var ReasonDurations = {
-        "Hate Speech": 2592000,
-        "Cheating": 1209600,
-        "Toxicity": 604800
+    var ReasonDurations = { "Hate Speech": 2592000, "Cheating": 1209600, "Toxicity": 604800 };
+
+    if (ModeratorIds.includes(Args.ReporterId)) {
+        server.BanUsers({ PlayFabIds: [Args.TargetId], DurationInSeconds: ReasonDurations[Args.Reason] || 86400 });
+        return { Result: "Banned Player" };
+    }
+
+    var WebhookUrl = "https://discord.com/api/webhooks/";
+    var Embed = {
+        title: "Player Report",
+        color: 16711680,
+        fields: [
+            { name: "**Reported**", value: `${Args.TargetId}\n${Args.TargetName || "Not Found"}\n#${Args.TargetColor || "FFFFFF"}`, inline: true },
+            { name: "**Reporter**", value: `${Args.ReporterId}\n${Args.ReporterName || "Not Found"}\n#${Args.ReporterColor || "FFFFFF"}`, inline: true },
+            { name: "**Details**", value: `Room: ${Args.Room || "Not Found"}\nReason: ${Args.Reason || "Not Found"}` }
+        ]
     };
 
-    var IsModerator = ModeratorIds.indexOf(Args.ReporterId) !== -1;
-
-    if (IsModerator) {
-        var Duration = ReasonDurations[Args.Reason] || 4;
-        server.BanUsers({
-            PlayFabIds: [Args.TargetId],
-            DurationInSeconds: Duration
-        });
-        return { Result: "Moderator Ban Executed" };
-    }
-
-    var ReportText =
-        Args.TargetId + " Was Reported By " + Args.ReporterId + "\\n" +
-        "Reporter Colour: " + Args.ReporterColor + "\\n" +
-        "Reported Colour: " + Args.TargetColor + "\\n" +
-        "Room: " + Args.Room + "\\n" +
-        "Reporter Username: " + Args.ReporterName + "\\n" +
-        "Reported Username: " + Args.TargetName;
-
-    var Payload = JSON.stringify({ content: ReportText });
-    var WebhookUrl = "YOUR_DISCORD_WEBHOOK_URL";
-
-    try {
-        http.request(WebhookUrl, "post", {
-            headers: { "Content-Type": "application/json" },
-            body: Payload
-        });
-    } catch (Error) {
-        log.error("Webhook Failed: " + Error.message);
-    }
-    return { Result: "Report Sent To Discord" };
+    http.request(WebhookUrl, "POST", JSON.stringify({ embeds: [Embed] }), "application/json");
+    return { Result: "Report Sent" };
 };
