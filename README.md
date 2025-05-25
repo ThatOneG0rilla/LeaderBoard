@@ -8,9 +8,8 @@ A secure, safe leaderboard with built in banning, cloudscript and displaying nam
 - Insta Ban (In cloudscript)
 
 **SETUP**
-Follow tutorial on youtube here:
-
-
+Follow tutorial on youtube [here](https://youtu.be/fBMY1vpQF6Y):
+or do this:
 1. Import Package into game
 2. Drag Prefab in
 3. Go to your playfab revision: https://developer.playfab.com/en-us/r/t/YOURID/automation/cloud-script/revisions
